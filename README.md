@@ -22,6 +22,10 @@ a dentist appointment. Please be gentle.
 Just drop the files in `./inputs`.
 Their file name will be their prompt as well.
 
+## Custom Modifiers
+
+Modifiers are loaded from `./modifiers.json'.
+
 ## Customize Outputs
 
 No :(
