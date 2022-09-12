@@ -28,7 +28,8 @@ Modifiers are loaded from `./modifiers.json'.
 
 ## Customize Outputs
 
-No :(
+You can fiddle with some Stable Diffusion parameters in `./options.json`.
+If you mess it up, the validation library Joi will cry havoc though.
 
 ## Generated Artwork
 

@@ -3,13 +3,17 @@ import { mkdir, readdir, readFile, writeFile } from "fs/promises";
 import { Dirent } from "fs";
 import { join } from "path";
 import sharp from "sharp";
+import { StableDiffusionOptions } from "./stable-diffusion-options";
+import { validate } from "./validation";
 
 const inputPath = join(__dirname, "..", "inputs");
 const inputExpr = /^([A-Za-z ]+)\.png$/i;
+const optionsPath = join(__dirname, "..", "options.json");
 const modifiersPath = join(__dirname, "..", "modifiers.json");
 const instance = new StableDiffusion();
 
 (async () => {
+  const options = await readOptions();
   const modifiers = await readModifiers();
   const inputs = await readInputs();
 
@@ -27,18 +31,7 @@ const instance = new StableDiffusion();
         console.log(`  -> "${prompt}" (from "${input.name}")`);
         const examples = await instance.generate(prompt, {
           initialImagePath: join(__dirname, "..", "inputs", input.name),
-          promptStrength: 0.8,
-          faceCorrection: false,
-          upscale: false,
-          steps: 50,
-          seed: 42,
-          fullPrecision: false,
-          outputs: 2,
-          turbo: true,
-          mode: "gpu",
-          width: 512,
-          height: 512,
-          guidance: 7.5,
+          ...options,
         });
         const promises = examples.map((example, index) => {
           const full = join(folder, `${name}-${index}-full.png`);
@@ -73,6 +66,12 @@ async function readInputs(): Promise<Dirent[]> {
   return entries.filter(
     (entry) => entry.isFile() && inputExpr.test(entry.name)
   );
+}
+
+async function readOptions(): Promise<StableDiffusionOptions> {
+  const contents = await readFile(optionsPath, { encoding: "utf8" });
+  const values: unknown = JSON.parse(contents);
+  return validate(values);
 }
 
 function nameToPrompt(name: string): string {
