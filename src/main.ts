@@ -3,8 +3,10 @@ import { mkdir, readdir, readFile, writeFile } from "fs/promises";
 import { Dirent } from "fs";
 import { join } from "path";
 import sharp from "sharp";
+import nunjucks from "nunjucks";
 import { StableDiffusionOptions } from "./stable-diffusion-options";
 import { validate } from "./validation";
+import { GeneratedImage } from "./models";
 
 const inputPath = join(__dirname, "..", "inputs");
 const inputExpr = /^([A-Za-z ]+)\.png$/i;
@@ -16,6 +18,7 @@ const modifiersPath = join(__dirname, "..", "modifiers.json");
   const options = await readOptions();
   const modifiers = await readModifiers();
   const inputs = await readInputs();
+  const generated: GeneratedImage[] = [];
 
   console.log("Checking back-end connectivity");
   if (!(await instance.ping())) {
@@ -43,6 +46,14 @@ const modifiersPath = join(__dirname, "..", "modifiers.json");
         const promises = examples.map((example, index) => {
           const full = join(folder, `${name}-${index}-full.png`);
           const thumb = join(folder, `${name}-${index}-128.png`);
+          generated.push({
+            category,
+            style,
+            path: `${category}/${style}/${name}-${index}-full.png`,
+            index,
+            prompt,
+            input: name,
+          });
           return writeFile(full, example).then(() => {
             return sharp(full)
               .resize({ width: 128, height: 128 })
@@ -58,6 +69,19 @@ const modifiersPath = join(__dirname, "..", "modifiers.json");
     console.log(`Done work on category: ${category}`);
   }
   console.log("All done :D");
+
+  if (generated.length > 0) {
+    console.log("Generating index");
+    const templateFile = join(__dirname, "..", "templates", "index.html");
+    const template = nunjucks.compile(
+      await readFile(templateFile, { encoding: "utf8" })
+    );
+    const asString = template.render({ generated, options });
+    await writeFile(join(__dirname, "..", "outputs", "index.html"), asString, {
+      encoding: "utf8",
+    });
+    console.log("Index generated");
+  }
 })();
 
 /**
