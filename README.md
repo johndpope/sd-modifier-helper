@@ -3,16 +3,19 @@ This is a little NodeJS script that utilizes
 to generate previews of well-known modifiers.
 
 These previews will be generated with:
-- a resolution of 512x512,
-- a downscaled thumbnail with the resolution 128x128,
-- two examples for every style, starting with seed 42,
-- a prompt strength of 0.8,
-- a guidance score of 7.5,
-- 50 iterations,
-- *no* full precision,
-- *no* upscaling,
-- *no* face corrections, but
-- lots of AI love. ♥
+
+| Setting         |   Value |
+|-----------------|--------:|
+| Resolution      | 512x512 |
+| Outputs         |       2 |
+| Initial seed    |      42 |
+| Prompt strength |     0.8 |
+| Guidance score  |     7.5 |
+| Steps           |      50 |
+| Upscaling       |    none |
+| Face correction |    none |
+| Full precision  |      no |
+| AI love ♥      |    lots |
 
 This is a proof-of-concept, and I did it between shopping for my dog's birthday and
 a dentist appointment. Please be gentle.
