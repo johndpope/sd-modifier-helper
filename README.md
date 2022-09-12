@@ -37,7 +37,7 @@ If you mess it up, the validation library Joi will cry havoc though.
 ## Generated Artwork
 
 Generated files will be placed in:
-`./outputs/[CATEGORY NAME]/[STYLE]`.
+`./outputs/[CATEGORY NAME]/[STYLE]/[INPUT]-[INDEX]-[full|128].png`.
 
-For every input image, two images will be generated (seed 42 and 43) at 512x512.
-In addition, a thumbnail of these will be created at 128x128.
+For every input image, images will be generated at 512x512px, starting with seed 42.
+In addition, a thumbnail of these will be created at 128x128px.
