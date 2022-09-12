@@ -1,7 +1,7 @@
 {
-  "name": "sd-runner",
+  "name": "sd-modifier-helper",
   "version": "1.0.0",
-  "description": "Stable Diffusion runner",
+  "description": "Stable Diffusion helper to generate previews for a set of modifiers",
   "main": "src/index.js",
   "scripts": {
     "build": "tsc",
