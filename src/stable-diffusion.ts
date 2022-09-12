@@ -3,6 +3,9 @@ import { readFile } from "fs/promises";
 import { StableDiffusionOptions } from "./stable-diffusion-options";
 import { StableDiffusionImageResponse } from "./stable-diffusion-response";
 
+/**
+ * This is a facade for the Stable Diffusion back-end.
+ */
 export class StableDiffusion {
   static readonly DEFAULTS: StableDiffusionOptions = {
     height: 512,
@@ -22,6 +25,13 @@ export class StableDiffusion {
 
   constructor(private readonly backend = "http://localhost:9000") {}
 
+  /**
+   * Sends an image generation request to the Stable Diffusion backend.
+   * Once the results are ready, they will be returned as Buffer instances.
+   *
+   * @param prompt the prompt to generate images for.
+   * @param options any options regarding the image creation process.
+   */
   async generate(
     prompt: string,
     options: Partial<StableDiffusionOptions> = {}
@@ -43,11 +53,21 @@ export class StableDiffusion {
     );
   }
 
+  /**
+   * Loads an image from the given path and returns it as a base64 encoded data URL.
+   * @param path the path of the image.
+   */
   static async loadImage(path: string): Promise<string> {
     const contents = await readFile(path);
     return this.binaryToDataImage(contents);
   }
 
+  /**
+   * Converts the given PNG data URL image to a binary format.
+   * This will throw an Error if the provided string does not begin
+   * with `data:image/png;base64,`.
+   * @param dataImg the image/png string to convert.
+   */
   static dataImageToBinary(dataImg: string): Buffer {
     const expr = /^data:image\/png;base64,(.*)$/;
     const match = expr.exec(dataImg);
@@ -57,10 +77,24 @@ export class StableDiffusion {
     throw new Error("Unsupported image data");
   }
 
+  /**
+   * Converts the given binary image to a base64 data URL representation.
+   * @param image the binary image to convert.
+   * @param mime the MIME type of the image, defaults to "image/png".
+   */
   static binaryToDataImage(image: Buffer, mime = "image/png"): string {
     return `data:${mime};base64,${image.toString("base64")}`;
   }
 
+  /**
+   * Transforms the given {@link StableDiffusionOptions} and the prompt to
+   * a request to be submitted to the back-end.
+   * If an image path is supplied (via {@link StableDiffusionOptions#initialImagePath}),
+   * it will be loaded and converted to base64 first.
+   *
+   * @param prompt the prompt for the image(s).
+   * @param options any options.
+   */
   static async toRequestPayload(
     prompt: string,
     options: StableDiffusionOptions

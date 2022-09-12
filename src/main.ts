@@ -10,9 +10,9 @@ const inputPath = join(__dirname, "..", "inputs");
 const inputExpr = /^([A-Za-z ]+)\.png$/i;
 const optionsPath = join(__dirname, "..", "options.json");
 const modifiersPath = join(__dirname, "..", "modifiers.json");
-const instance = new StableDiffusion();
 
 (async () => {
+  const instance = new StableDiffusion();
   const options = await readOptions();
   const modifiers = await readModifiers();
   const inputs = await readInputs();
@@ -53,11 +53,18 @@ const instance = new StableDiffusion();
   console.log("All done :D");
 })();
 
+/**
+ * Reads a list of modifiers from `./modifiers.json`.
+ */
 async function readModifiers(): Promise<Record<string, string[]>> {
   const contents = await readFile(modifiersPath, { encoding: "utf8" });
+  // TODO: validate via Joi
   return JSON.parse(contents) as Record<string, string[]>;
 }
 
+/**
+ * Reads all input files contained in `./inputs`.
+ */
 async function readInputs(): Promise<Dirent[]> {
   const entries = await readdir(inputPath, {
     encoding: "utf8",
@@ -68,6 +75,10 @@ async function readInputs(): Promise<Dirent[]> {
   );
 }
 
+/**
+ * Reads and validates options from `options.json`.
+ * If valid, it will be returned as a {@link StableDiffusionOptions} instance.
+ */
 async function readOptions(): Promise<StableDiffusionOptions> {
   const contents = await readFile(optionsPath, { encoding: "utf8" });
   const values: unknown = JSON.parse(contents);

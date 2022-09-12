@@ -1,6 +1,10 @@
 import Joi from "joi";
 import { StableDiffusionOptions } from "./stable-diffusion-options";
 
+/**
+ * This is the Joi schema to validate arbitrary JSON input to follow the
+ * format of {@link StableDiffusionOptions}.
+ */
 const schema = Joi.object<StableDiffusionOptions>({
   faceCorrection: Joi.boolean().default(false),
   fullPrecision: Joi.boolean().default(false),
@@ -21,6 +25,13 @@ const schema = Joi.object<StableDiffusionOptions>({
   outputs: Joi.number().integer().min(1).default(2),
 });
 
+/**
+ * Validates the given object against the {@link StableDiffusionOptions} schema.
+ * If valid, it will be returned (alongside defaults where unset).
+ * If invalid, a ValidationError will be thrown.
+ *
+ * @param options the object to validate.
+ */
 export function validate(options: unknown): StableDiffusionOptions {
   const { error, value } = schema.validate(options, {
     abortEarly: true,
