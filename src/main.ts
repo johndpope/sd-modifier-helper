@@ -17,6 +17,13 @@ const modifiersPath = join(__dirname, "..", "modifiers.json");
   const modifiers = await readModifiers();
   const inputs = await readInputs();
 
+  console.log("Checking back-end connectivity");
+  if (!(await instance.ping())) {
+    console.error("Back-end seems to be unreachable");
+    return;
+  }
+
+  console.log("Backend ready!");
   console.log(`Loaded ${Object.keys(modifiers).length} entries`);
   for (const [category, styles] of Object.entries(modifiers)) {
     console.log(`Working on category: ${category}`);

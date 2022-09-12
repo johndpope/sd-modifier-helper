@@ -53,6 +53,18 @@ export class StableDiffusion {
     );
   }
 
+  async ping(): Promise<boolean> {
+    const url = `${this.backend}/ping`;
+    const { data } = await axios.get(url, {
+      headers: {
+        Accept: "application/json",
+      },
+      responseEncoding: "utf-8",
+      timeout: 5000,
+    });
+    return Array.isArray(data) && data[0] === "OK";
+  }
+
   /**
    * Loads an image from the given path and returns it as a base64 encoded data URL.
    * @param path the path of the image.
