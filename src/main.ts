@@ -33,8 +33,10 @@ import { Configuration } from "./configuration";
 
   const progress = new SingleBar({}, Presets.shades_classic);
   progress.start(taskQueue.length, 0);
+  taskQueue.on(TaskQueue.AFTER_EACH, () => progress.increment());
+  taskQueue.once(TaskQueue.AFTER_ALL, () => progress.stop());
+
   for await (const processed of taskQueue.process()) {
-    progress.increment();
     if (
       processed instanceof SdTask &&
       typeof processed.memento !== "undefined"
@@ -49,8 +51,6 @@ import { Configuration } from "./configuration";
       );
     }
   }
-
-  progress.stop();
 })();
 
 async function buildTaskQueue(
