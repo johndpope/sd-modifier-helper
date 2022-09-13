@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - The directory clean-up/creation tasks are now working 2% more properly. For realsies!
 
-## [1.1.0] - 2022-09-12
+## [1.1.0] - 2022-09-13
 
 This is mainly a slight improvement under the hood, since I wrote and published
 1.0.0 in-between shopping and a dentist appointment.
