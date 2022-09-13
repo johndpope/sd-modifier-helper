@@ -1,12 +1,14 @@
 import { StableDiffusion } from "./stable-diffusion";
-import { mkdir, readdir, readFile, writeFile } from "fs/promises";
+import { mkdir, readdir, readFile } from "fs/promises";
 import { Dirent } from "fs";
 import { join } from "path";
-import sharp from "sharp";
-import nunjucks from "nunjucks";
 import { StableDiffusionOptions } from "./stable-diffusion-options";
 import { validate } from "./validation";
 import { GeneratedImage } from "./models";
+import { TaskQueue } from "./task-queue";
+import { IndexTask, ResizeTask, SdTask } from "./tasks";
+import { SingleBar, Presets } from "cli-progress";
+import { AxiosError } from "axios";
 
 const inputPath = join(__dirname, "..", "inputs");
 const inputExpr = /^([A-Za-z ]+)\.png$/i;
@@ -15,74 +17,106 @@ const modifiersPath = join(__dirname, "..", "modifiers.json");
 
 (async () => {
   const instance = new StableDiffusion();
+
+  try {
+    await checkBackend(instance);
+  } catch (e) {
+    if (e instanceof AxiosError && e.code === "ECONNREFUSED") {
+      console.error(`No running back-end instance on ${instance.backend}`);
+      process.exit(-1);
+    }
+  }
+
+  const taskQueue = await buildTaskQueue(instance);
+  const generated: GeneratedImage[] = [];
+  const templateFile = join(__dirname, "..", "templates", "index.html");
+  const indexFile = join(__dirname, "..", "outputs", "index.html");
+  taskQueue.enqueue(new IndexTask(templateFile, indexFile, generated));
+
+  const progress = new SingleBar({}, Presets.shades_classic);
+  progress.start(taskQueue.length, 0);
+  for await (const processed of taskQueue.process()) {
+    progress.increment();
+    if (
+      processed instanceof SdTask &&
+      typeof processed.memento !== "undefined"
+    ) {
+      const { input, style, category, prompt } = processed.memento as Record<
+        string,
+        string
+      >;
+      generated.push(
+        ...processed.files.map((path, index) => ({
+          input,
+          category,
+          style,
+          prompt,
+          index,
+          path,
+        }))
+      );
+    }
+  }
+
+  progress.stop();
+})();
+
+async function buildTaskQueue(instance: StableDiffusion): Promise<TaskQueue> {
   const options = await readOptions();
   const modifiers = await readModifiers();
   const inputs = await readInputs();
-  const generated: GeneratedImage[] = [];
+  const taskQueue = new TaskQueue();
 
-  console.log("Checking back-end connectivity");
-  if (!(await instance.ping())) {
-    console.error("Back-end seems to be unreachable");
-    return;
-  }
-
-  console.log("Backend ready!");
-  console.log(`Loaded ${Object.keys(modifiers).length} entries`);
   for (const [category, styles] of Object.entries(modifiers)) {
-    console.log(`Working on category: ${category}`);
     for (const style of styles) {
       const folder = join(__dirname, "..", "outputs", category, style);
       await mkdir(folder, { recursive: true });
 
-      console.log(`Working on style: ${style}`);
       for (const input of inputs) {
         const name = nameToPrompt(input.name);
         const prompt = `${name}, ${style}`;
-        console.log(`  -> "${prompt}" (from "${input.name}")`);
-        const examples = await instance.generate(prompt, {
-          initialImagePath: join(__dirname, "..", "inputs", input.name),
-          ...options,
-        });
-        const promises = examples.map((example, index) => {
-          const full = join(folder, `${name}-${index}-full.png`);
-          const thumb = join(folder, `${name}-${index}-128.png`);
-          generated.push({
-            category,
-            style,
-            path: `${category}/${style}/${name}-${index}-full.png`,
-            index,
-            prompt,
-            input: name,
-          });
-          return writeFile(full, example).then(() => {
-            return sharp(full)
-              .resize({ width: 128, height: 128 })
-              .png()
-              .toFile(thumb);
-          });
-        });
-        await Promise.all(promises);
+        const task = new SdTask(
+          instance,
+          prompt,
+          {
+            initialImagePath: join(__dirname, "..", "inputs", input.name),
+            ...options,
+          },
+          (index) => join(folder, `${name}-${index}-full.png`)
+        );
+        task.memento = {
+          input: name,
+          style,
+          category,
+          prompt,
+        };
+        taskQueue.enqueue(task);
+        for (let i = 0; i < options.outputs; i++) {
+          taskQueue.enqueue(
+            new ResizeTask(
+              join(folder, `${name}-${i}-full.png`),
+              join(folder, `${name}-${i}-thumb.png`),
+              128,
+              128
+            )
+          );
+        }
       }
-      console.log(`Done working on style: ${style}`);
-      console.log(`Examples in ${folder}`);
     }
-    console.log(`Done work on category: ${category}`);
   }
-  console.log("All done :D");
 
-  if (generated.length > 0) {
-    console.log("Generating index");
-    const templateFile = join(__dirname, "..", "templates", "index.html");
-    const template = nunjucks.compile(
-      await readFile(templateFile, { encoding: "utf8" })
-    );
-    const asString = template.render({ generated, options });
-    await writeFile(join(__dirname, "..", "outputs", "index.html"), asString, {
-      encoding: "utf8",
-    });
-    console.log("Index generated");
-  }
-})();
+  return taskQueue;
+}
+
+/**
+ * Pings the back-end. If unavailable, an error will be thrown by Axios.
+ * @param instance the Stable Diffusion instance to check.
+ */
+async function checkBackend(instance: StableDiffusion): Promise<void> {
+  console.log("Checking back-end connectivity");
+  await instance.ping();
+  console.log("Backend ready!");
+}
 
 /**
  * Reads a list of modifiers from `./modifiers.json`.

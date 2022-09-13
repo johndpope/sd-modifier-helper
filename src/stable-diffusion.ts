@@ -23,7 +23,7 @@ export class StableDiffusion {
     promptStrength: 0.8,
   };
 
-  constructor(private readonly backend = "http://localhost:9000") {}
+  constructor(readonly backend = "http://localhost:9000") {}
 
   /**
    * Sends an image generation request to the Stable Diffusion backend.
