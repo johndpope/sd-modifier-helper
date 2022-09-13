@@ -23,7 +23,7 @@ export class StableDiffusion {
     promptStrength: 0.8,
   };
 
-  constructor(private readonly backend = "http://localhost:9000") {}
+  constructor(readonly backend = "http://localhost:9000") {}
 
   /**
    * Sends an image generation request to the Stable Diffusion backend.
@@ -110,7 +110,7 @@ export class StableDiffusion {
   static async toRequestPayload(
     prompt: string,
     options: StableDiffusionOptions
-  ): Promise<any> {
+  ): Promise<Record<string, string | number | boolean>> {
     return {
       prompt,
       num_outputs: Math.max(1, options.outputs),
