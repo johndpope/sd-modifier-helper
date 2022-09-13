@@ -1,11 +1,12 @@
 import Joi from "joi";
 import { StableDiffusionOptions } from "./stable-diffusion-options";
+import { Modifiers } from "./models";
 
 /**
  * This is the Joi schema to validate arbitrary JSON input to follow the
  * format of {@link StableDiffusionOptions}.
  */
-const schema = Joi.object<StableDiffusionOptions>({
+const optionsSchema = Joi.object<StableDiffusionOptions>({
   faceCorrection: Joi.boolean().default(false),
   fullPrecision: Joi.boolean().default(false),
   guidance: Joi.number().min(1.0).default(7.5),
@@ -25,20 +26,48 @@ const schema = Joi.object<StableDiffusionOptions>({
   outputs: Joi.number().integer().min(1).default(2),
 });
 
+const modifiersSchema = Joi.object<Modifiers>()
+  .pattern(/^[a-zA-Z &_-]{1,64}$/, Joi.array().items(Joi.string().min(1)))
+  .unknown(true);
+
+function pathToString(path: Array<number | string>): string {
+  return path
+    .map((item) => (typeof item === "number" ? `[${item}]` : item))
+    .join(".");
+}
+
+function validate<TIn, TOut>(data: TIn, schema: Joi.ObjectSchema<TOut>): TOut {
+  const { error, value } = schema.validate(data, {
+    abortEarly: true,
+    cache: false,
+    stripUnknown: true,
+    convert: true,
+  });
+  if (error) {
+    const [issue] = error.details;
+    throw new Error(`${issue.message} in path: ${pathToString(issue.path)}`);
+  }
+  return value as TOut;
+}
+
 /**
  * Validates the given object against the {@link StableDiffusionOptions} schema.
  * If valid, it will be returned (alongside defaults where unset).
- * If invalid, a ValidationError will be thrown.
+ * If invalid, an Error will be thrown.
  *
  * @param options the object to validate.
  */
-export function validate(options: unknown): StableDiffusionOptions {
-  const { error, value } = schema.validate(options, {
-    abortEarly: true,
-    stripUnknown: true,
-  });
-  if (error) {
-    throw error;
-  }
-  return value;
+export function validateOptions(options: unknown): StableDiffusionOptions {
+  return validate(options, optionsSchema);
+}
+
+/**
+ * Validates the given object against the {@link Modifiers} schema.
+ * If valid, it will be returned (alongside defaults where unset).
+ * If invalid, an Error will be thrown.
+ *
+ * @param modifiers the object to validate.
+ */
+export function validateModifiers(modifiers: unknown): Modifiers {
+  return validate(modifiers, modifiersSchema);
 }

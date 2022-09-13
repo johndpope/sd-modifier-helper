@@ -2,7 +2,8 @@ import { join } from "path";
 import { readdir, readFile } from "fs/promises";
 import { Dirent } from "fs";
 import { StableDiffusionOptions } from "./stable-diffusion-options";
-import { validate } from "./validation";
+import { validateModifiers, validateOptions } from "./validation";
+import { Modifiers } from "./models";
 
 export class Configuration {
   get inputPath(): string {
@@ -34,10 +35,10 @@ export class Configuration {
   /**
    * Reads a list of modifiers.
    */
-  async readModifiers(): Promise<Record<string, string[]>> {
+  async readModifiers(): Promise<Modifiers> {
     const contents = await readFile(this.modifiersPath, { encoding: "utf8" });
-    // TODO: validate via Joi
-    return JSON.parse(contents) as Record<string, string[]>;
+    const values: unknown = JSON.parse(contents);
+    return validateModifiers(values);
   }
 
   /**
@@ -60,7 +61,7 @@ export class Configuration {
   async readOptions(): Promise<StableDiffusionOptions> {
     const contents = await readFile(this.optionsPath, { encoding: "utf8" });
     const values: unknown = JSON.parse(contents);
-    return validate(values);
+    return validateOptions(values);
   }
 
   nameToPrompt(name: string): string {

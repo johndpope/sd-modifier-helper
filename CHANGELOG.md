@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- The validation of `modifiers.json` is now added.
+
+### Fixed
+- The directory clean-up/creation tasks are now working 2% more properly. For realsies!
+
 ## [1.1.0] - 2022-09-12
 
 This is mainly a slight improvement under the hood, since I wrote and published
