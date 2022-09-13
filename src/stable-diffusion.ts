@@ -110,7 +110,7 @@ export class StableDiffusion {
   static async toRequestPayload(
     prompt: string,
     options: StableDiffusionOptions
-  ): Promise<any> {
+  ): Promise<Record<string, string | number | boolean>> {
     return {
       prompt,
       num_outputs: Math.max(1, options.outputs),
