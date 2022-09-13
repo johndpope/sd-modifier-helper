@@ -1,22 +1,16 @@
 import { StableDiffusion } from "./stable-diffusion";
-import { mkdir, readdir, readFile } from "fs/promises";
-import { Dirent } from "fs";
+import { mkdir } from "fs/promises";
 import { join } from "path";
-import { StableDiffusionOptions } from "./stable-diffusion-options";
-import { validate } from "./validation";
 import { GeneratedImage } from "./models";
 import { TaskQueue } from "./task-queue";
 import { IndexTask, ResizeTask, SdTask } from "./tasks";
-import { SingleBar, Presets } from "cli-progress";
+import { Presets, SingleBar } from "cli-progress";
 import { AxiosError } from "axios";
-
-const inputPath = join(__dirname, "..", "inputs");
-const inputExpr = /^([A-Za-z ]+)\.png$/i;
-const optionsPath = join(__dirname, "..", "options.json");
-const modifiersPath = join(__dirname, "..", "modifiers.json");
+import { Configuration } from "./configuration";
 
 (async () => {
   const instance = new StableDiffusion();
+  const configuration = new Configuration();
 
   try {
     await checkBackend(instance);
@@ -27,11 +21,15 @@ const modifiersPath = join(__dirname, "..", "modifiers.json");
     }
   }
 
-  const taskQueue = await buildTaskQueue(instance);
+  const taskQueue = await buildTaskQueue(instance, configuration);
   const generated: GeneratedImage[] = [];
-  const templateFile = join(__dirname, "..", "templates", "index.html");
-  const indexFile = join(__dirname, "..", "outputs", "index.html");
-  taskQueue.enqueue(new IndexTask(templateFile, indexFile, generated));
+  taskQueue.enqueue(
+    new IndexTask(
+      join(__dirname, "..", "templates", "index.html"),
+      join(__dirname, "..", "outputs", "index.html"),
+      generated
+    )
+  );
 
   const progress = new SingleBar({}, Presets.shades_classic);
   progress.start(taskQueue.length, 0);
@@ -41,18 +39,12 @@ const modifiersPath = join(__dirname, "..", "modifiers.json");
       processed instanceof SdTask &&
       typeof processed.memento !== "undefined"
     ) {
-      const { input, style, category, prompt } = processed.memento as Record<
-        string,
-        string
-      >;
+      const { category, prompt } = processed.memento as Record<string, string>;
       generated.push(
         ...processed.files.map((path, index) => ({
-          input,
           category,
-          style,
-          prompt,
-          index,
           path,
+          label: `${prompt}, #${index}`,
         }))
       );
     }
@@ -61,10 +53,15 @@ const modifiersPath = join(__dirname, "..", "modifiers.json");
   progress.stop();
 })();
 
-async function buildTaskQueue(instance: StableDiffusion): Promise<TaskQueue> {
-  const options = await readOptions();
-  const modifiers = await readModifiers();
-  const inputs = await readInputs();
+async function buildTaskQueue(
+  instance: StableDiffusion,
+  cfg: Configuration
+): Promise<TaskQueue> {
+  const [options, modifiers, inputs] = await Promise.all([
+    cfg.readOptions(),
+    cfg.readModifiers(),
+    cfg.readInputs(),
+  ]);
   const taskQueue = new TaskQueue();
 
   for (const [category, styles] of Object.entries(modifiers)) {
@@ -73,7 +70,7 @@ async function buildTaskQueue(instance: StableDiffusion): Promise<TaskQueue> {
       await mkdir(folder, { recursive: true });
 
       for (const input of inputs) {
-        const name = nameToPrompt(input.name);
+        const name = cfg.nameToPrompt(input.name);
         const prompt = `${name}, ${style}`;
         const task = new SdTask(
           instance,
@@ -116,44 +113,4 @@ async function checkBackend(instance: StableDiffusion): Promise<void> {
   console.log("Checking back-end connectivity");
   await instance.ping();
   console.log("Backend ready!");
-}
-
-/**
- * Reads a list of modifiers from `./modifiers.json`.
- */
-async function readModifiers(): Promise<Record<string, string[]>> {
-  const contents = await readFile(modifiersPath, { encoding: "utf8" });
-  // TODO: validate via Joi
-  return JSON.parse(contents) as Record<string, string[]>;
-}
-
-/**
- * Reads all input files contained in `./inputs`.
- */
-async function readInputs(): Promise<Dirent[]> {
-  const entries = await readdir(inputPath, {
-    encoding: "utf8",
-    withFileTypes: true,
-  });
-  return entries.filter(
-    (entry) => entry.isFile() && inputExpr.test(entry.name)
-  );
-}
-
-/**
- * Reads and validates options from `options.json`.
- * If valid, it will be returned as a {@link StableDiffusionOptions} instance.
- */
-async function readOptions(): Promise<StableDiffusionOptions> {
-  const contents = await readFile(optionsPath, { encoding: "utf8" });
-  const values: unknown = JSON.parse(contents);
-  return validate(values);
-}
-
-function nameToPrompt(name: string): string {
-  const match = inputExpr.exec(name);
-  if (!match) {
-    throw new Error(`Failed to figure out the prompt for "${name}"`);
-  }
-  return match[1];
 }

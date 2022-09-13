@@ -6,10 +6,10 @@
   <title>Modifiers Index</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-neutral-700 text-neutral-100">
 
 <main class="md:container md:mx-auto">
-  <h1 class="text-3xl">Modifiers Index</h1>
+  <h1 class="text-3xl">Modifiers</h1>
 
   {% for category, items in generated | groupby("category") %}
 
@@ -17,12 +17,12 @@
 
   <div class="grid grid-cols-4 gap-4">
     {% for item in items %}
-    <div>
-      <div class="mx-auto p-1">
-        <img src="{{ item.path }}" alt="{{ item.category }}, {{ item.style }}" class="drop-shadow-md" />
+    <div class="border-2 border-neutral-600 drop-shadow-md">
+      <div class="mx-auto">
+        <img src="{{ item.path }}" alt="{{ item.label }}" />
       </div>
-      <div class="bg-slate-200 p-1">
-        <span class="font-medium">{{ item.style }}</span> (#{{ item.index }})
+      <div class="bg-neutral-600 px-2 py-1">
+        {{ item.label }}
       </div>
     </div>
     {% endfor %}
