@@ -17,6 +17,14 @@ export class Configuration {
     return process.env.OPTIONS_PATH ?? join(__dirname, "..", "options.json");
   }
 
+  get outputPath(): string {
+    return process.env.OUTPUT_PATH ?? join(__dirname, "..", "outputs");
+  }
+
+  get templatePath(): string {
+    return process.env.TEMPLATE_PATH ?? join(__dirname, "..", "templates");
+  }
+
   get modifiersPath(): string {
     return (
       process.env.MODIFIERS_PATH ?? join(__dirname, "..", "modifiers.json")

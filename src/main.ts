@@ -3,7 +3,7 @@ import { mkdir } from "fs/promises";
 import { join } from "path";
 import { GeneratedImage } from "./models";
 import { TaskQueue } from "./task-queue";
-import { IndexTask, ResizeTask, SdTask } from "./tasks";
+import { CleanupTask, IndexTask, ResizeTask, SdTask } from "./tasks";
 import { Presets, SingleBar } from "cli-progress";
 import { AxiosError } from "axios";
 import { Configuration } from "./configuration";
@@ -25,14 +25,22 @@ import { Configuration } from "./configuration";
   const generated: GeneratedImage[] = [];
   taskQueue.enqueue(
     new IndexTask(
-      join(__dirname, "..", "templates", "index.html"),
-      join(__dirname, "..", "outputs", "index.html"),
+      join(configuration.templatePath, "index.html"),
+      join(configuration.outputPath, "index.html"),
       generated
     )
   );
 
-  const progress = new SingleBar({}, Presets.shades_classic);
+  const progress = new SingleBar(
+    {
+      etaAsynchronousUpdate: true,
+    },
+    Presets.shades_classic
+  );
   progress.start(taskQueue.length, 0);
+  taskQueue.on(TaskQueue.TASK_ERROR, (task, err) => {
+    console.error(`Task failed: ${err}`);
+  });
   taskQueue.on(TaskQueue.AFTER_EACH, () => progress.increment());
   taskQueue.once(TaskQueue.AFTER_ALL, () => progress.stop());
 
@@ -63,6 +71,7 @@ async function buildTaskQueue(
     cfg.readInputs(),
   ]);
   const taskQueue = new TaskQueue();
+  taskQueue.enqueue(new CleanupTask(cfg.outputPath));
 
   for (const [category, styles] of Object.entries(modifiers)) {
     for (const style of styles) {

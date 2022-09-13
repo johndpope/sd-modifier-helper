@@ -50,6 +50,9 @@ export class TaskQueue<T extends Task = Task> extends EventEmitter {
         yield task;
       } catch (e) {
         this.emit(TaskQueue.TASK_ERROR, task, e);
+        if (task.stopOnError === true) {
+          break;
+        }
       } finally {
         this.emit(TaskQueue.AFTER_EACH, task);
       }
