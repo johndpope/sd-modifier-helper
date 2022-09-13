@@ -1,6 +1,6 @@
 {
   "name": "sd-modifier-helper",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Stable Diffusion helper to generate previews for a set of modifiers",
   "main": "src/index.js",
   "scripts": {
@@ -21,16 +21,19 @@
   },
   "devDependencies": {
     "@types/cli-progress": "^3.11.0",
-    "@types/node": "^18.7.16",
+    "@types/node": "^18.7.17",
     "@types/nunjucks": "^3.2.1",
     "@types/sharp": "^0.30.5",
-    "@typescript-eslint/eslint-plugin": "^5.36.2",
-    "@typescript-eslint/parser": "^5.36.2",
+    "@typescript-eslint/eslint-plugin": "^5.37.0",
+    "@typescript-eslint/parser": "^5.37.0",
     "eslint": "^8.23.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.7.1",
     "ts-node": "^10.9.1",
     "typescript": "^4.8.3"
+  },
+  "engines": {
+    "node": ">= 16"
   }
 }
