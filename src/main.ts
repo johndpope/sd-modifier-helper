@@ -1,16 +1,21 @@
 import { StableDiffusion } from "./stable-diffusion";
-import { mkdir } from "fs/promises";
 import { join } from "path";
 import { GeneratedImage } from "./models";
 import { TaskQueue } from "./task-queue";
-import { IndexTask, ResizeTask, SdTask } from "./tasks";
+import {
+  CleanupTask,
+  CreateDirectoryTask,
+  IndexTask,
+  ResizeTask,
+  SdTask,
+} from "./tasks";
 import { Presets, SingleBar } from "cli-progress";
 import { AxiosError } from "axios";
 import { Configuration } from "./configuration";
 
 (async () => {
   const instance = new StableDiffusion();
-  const configuration = new Configuration();
+  const configuration = await Configuration.fromArgs();
 
   try {
     await checkBackend(instance);
@@ -25,21 +30,26 @@ import { Configuration } from "./configuration";
   const generated: GeneratedImage[] = [];
   taskQueue.enqueue(
     new IndexTask(
-      join(__dirname, "..", "templates", "index.html"),
-      join(__dirname, "..", "outputs", "index.html"),
+      join(configuration.templatePath, "index.html"),
+      join(configuration.outputPath, "index.html"),
       generated
     )
   );
 
   const progress = new SingleBar({}, Presets.shades_classic);
   progress.start(taskQueue.length, 0);
+  taskQueue.on(TaskQueue.TASK_ERROR, (task, err) => {
+    console.error(`Task failed: ${err}`);
+  });
+  taskQueue.on(TaskQueue.AFTER_EACH, () => progress.increment());
+  taskQueue.once(TaskQueue.AFTER_ALL, () => progress.stop());
+
   for await (const processed of taskQueue.process()) {
-    progress.increment();
     if (
       processed instanceof SdTask &&
       typeof processed.memento !== "undefined"
     ) {
-      const { category, prompt } = processed.memento as Record<string, string>;
+      const { category, prompt } = processed.memento;
       generated.push(
         ...processed.files.map((path, index) => ({
           category,
@@ -49,8 +59,6 @@ import { Configuration } from "./configuration";
       );
     }
   }
-
-  progress.stop();
 })();
 
 async function buildTaskQueue(
@@ -63,11 +71,14 @@ async function buildTaskQueue(
     cfg.readInputs(),
   ]);
   const taskQueue = new TaskQueue();
+  if (cfg.cleanFirst) {
+    taskQueue.enqueue(new CleanupTask(cfg.outputPath));
+  }
 
   for (const [category, styles] of Object.entries(modifiers)) {
     for (const style of styles) {
-      const folder = join(__dirname, "..", "outputs", category, style);
-      await mkdir(folder, { recursive: true });
+      const folder = join(cfg.outputPath, category, style);
+      taskQueue.enqueue(new CreateDirectoryTask(folder));
 
       for (const input of inputs) {
         const name = cfg.nameToPrompt(input.name);
@@ -76,10 +87,11 @@ async function buildTaskQueue(
           instance,
           prompt,
           {
-            initialImagePath: join(__dirname, "..", "inputs", input.name),
+            initialImagePath: join(cfg.inputPath, input.name),
             ...options,
           },
-          (index) => join(folder, `${name}-${index}-full.png`)
+          (index) => join(folder, `${name}-${index}-full.png`),
+          cfg.skipExisting
         );
         task.memento = {
           input: name,
@@ -94,7 +106,8 @@ async function buildTaskQueue(
               join(folder, `${name}-${i}-full.png`),
               join(folder, `${name}-${i}-thumb.png`),
               128,
-              128
+              128,
+              task
             )
           );
         }

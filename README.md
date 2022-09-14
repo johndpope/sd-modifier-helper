@@ -7,7 +7,8 @@ These previews will be generated with:
 | Setting         |   Value |
 |-----------------|--------:|
 | Resolution      | 512x512 |
-| Outputs         |       2 |
+| Thumbnails      | 128x128 |
+| Outputs         |       1 |
 | Initial seed    |      42 |
 | Prompt strength |     0.8 |
 | Guidance score  |     7.5 |
@@ -27,7 +28,7 @@ Their file name will be their prompt as well.
 
 ## Custom Modifiers
 
-Modifiers are loaded from `./modifiers.json'.
+Modifiers are loaded from `./modifiers.json`.
 
 ## Customize Outputs
 
@@ -37,7 +38,7 @@ If you mess it up, the validation library Joi will cry havoc though.
 ## Generated Artwork
 
 Generated files will be placed in:
-`./outputs/[CATEGORY NAME]/[STYLE]/[INPUT]-[INDEX]-[full|128].png`.
+`./outputs/[CATEGORY NAME]/[STYLE]/[INPUT]-[INDEX]-[full|thumb].png`.
 
 For every input image, images will be generated at 512x512px, starting with seed 42.
 In addition, a thumbnail of these will be created at 128x128px.

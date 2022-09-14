@@ -4,7 +4,7 @@
   "upscale": false,
   "steps": 50,
   "seed": 42,
-  "outputs": 2,
+  "outputs": 1,
   "width": 512,
   "height": 512,
   "guidance": 7.5

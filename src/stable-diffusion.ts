@@ -7,6 +7,9 @@ import { StableDiffusionImageResponse } from "./stable-diffusion-response";
  * This is a facade for the Stable Diffusion back-end.
  */
 export class StableDiffusion {
+  /**
+   * A set of default options for Stable Diffusion.
+   */
   static readonly DEFAULTS: StableDiffusionOptions = {
     height: 512,
     width: 512,

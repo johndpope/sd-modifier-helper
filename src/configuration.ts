@@ -2,34 +2,69 @@ import { join } from "path";
 import { readdir, readFile } from "fs/promises";
 import { Dirent } from "fs";
 import { StableDiffusionOptions } from "./stable-diffusion-options";
-import { validate } from "./validation";
+import { validateModifiers, validateOptions } from "./validation";
+import { Modifiers } from "./models";
+import args from "./args";
 
+/**
+ * This is a helper class that makes configuration related settings available.
+ */
 export class Configuration {
-  get inputPath(): string {
-    return process.env.INPUT_PATH ?? join(__dirname, "..", "inputs");
-  }
-
+  /**
+   * A regular expression describing the format of the input image,
+   * with the first matching group serving as the name for an image.
+   */
   get inputExpr(): RegExp {
     return /^([A-Za-z ]+)\.png$/i; // FIXME: hardcoded
   }
 
-  get optionsPath(): string {
-    return process.env.OPTIONS_PATH ?? join(__dirname, "..", "options.json");
+  /**
+   * The root path from which templates should be loaded from.
+   * @see {@link IndexTask}
+   */
+  get templatePath(): string {
+    return process.env.TEMPLATE_PATH ?? join(__dirname, "..", "templates");
   }
 
-  get modifiersPath(): string {
-    return (
-      process.env.MODIFIERS_PATH ?? join(__dirname, "..", "modifiers.json")
+  /**
+   *
+   * @param inputPath the folder from which to load the input images
+   * @param outputPath the root path under which to store results
+   * @param modifiersPath the file from which to load a set of modifiers from
+   * @param optionsPath the file from which to load Stable Diffusion options from
+   * @param cleanFirst if true, the output path will be entirely removed first
+   * @param skipExisting if true, existing files will not be regenerated
+   * @protected
+   */
+  protected constructor(
+    // TODO: wrap into options argument
+    readonly inputPath: string,
+    readonly outputPath: string,
+    readonly modifiersPath: string,
+    readonly optionsPath: string,
+    readonly cleanFirst: boolean,
+    readonly skipExisting: boolean
+  ) {}
+
+  static async fromArgs(): Promise<Configuration> {
+    const actual = await args;
+    return new Configuration(
+      actual.input,
+      actual.output,
+      actual.modifiers,
+      actual.options,
+      actual.clean,
+      actual.skipExisting
     );
   }
 
   /**
    * Reads a list of modifiers.
    */
-  async readModifiers(): Promise<Record<string, string[]>> {
+  async readModifiers(): Promise<Modifiers> {
     const contents = await readFile(this.modifiersPath, { encoding: "utf8" });
-    // TODO: validate via Joi
-    return JSON.parse(contents) as Record<string, string[]>;
+    const values: unknown = JSON.parse(contents);
+    return validateModifiers(values);
   }
 
   /**
@@ -52,9 +87,15 @@ export class Configuration {
   async readOptions(): Promise<StableDiffusionOptions> {
     const contents = await readFile(this.optionsPath, { encoding: "utf8" });
     const values: unknown = JSON.parse(contents);
-    return validate(values);
+    return validateOptions(values);
   }
 
+  /**
+   * Uses the first match group described by {@link inputExpr} to
+   * extract a name for an input file.
+   *
+   * @param name the file's name, with no path information.
+   */
   nameToPrompt(name: string): string {
     const match = this.inputExpr.exec(name);
     if (!match) {

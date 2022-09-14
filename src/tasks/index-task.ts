@@ -3,6 +3,9 @@ import nunjucks from "nunjucks";
 import { readFile, writeFile } from "fs/promises";
 import { GeneratedImage } from "../models";
 
+/**
+ * A task that creates an `index.html` page for generated images.
+ */
 export class IndexTask implements Task {
   constructor(
     readonly templateFile: string,
