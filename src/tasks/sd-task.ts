@@ -3,10 +3,16 @@ import { Task } from "./task";
 import { StableDiffusionOptions } from "../stable-diffusion-options";
 import { StableDiffusion } from "../stable-diffusion";
 
+interface SdTaskMemento extends Record<string, unknown> {
+  category: string;
+  prompt: string;
+  style: string;
+}
+
 export class SdTask implements Task {
   readonly files: string[] = [];
 
-  memento?: unknown;
+  memento?: SdTaskMemento;
 
   constructor(
     private readonly stableDiffusion: StableDiffusion,
