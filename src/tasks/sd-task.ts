@@ -21,6 +21,11 @@ export class SdTask implements Task {
   memento?: SdTaskMemento;
 
   /**
+   * Iff set and true, this task was skipped during {@link run}.
+   */
+  skipped?: true;
+
+  /**
    * Creates a new instance.
    *
    * @param stableDiffusion the Stable Diffusion back-end connection.
@@ -55,6 +60,7 @@ export class SdTask implements Task {
     } else {
       // we're "lying" insofar as that we haven't actually determined which files exist
       // we're just assuming
+      this.skipped = true;
       const shouldHave = this.options.outputs ?? 1;
       for (let i = 0; i < shouldHave; i++) {
         this.files.push(this.saveAs(i));

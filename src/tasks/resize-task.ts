@@ -1,4 +1,5 @@
 import { Task } from "./task";
+import { SdTask } from "./sd-task";
 import sharp from "sharp";
 
 /**
@@ -6,17 +7,27 @@ import sharp from "sharp";
  * and stores it as a PNG at the destination path.
  */
 export class ResizeTask implements Task {
+  /**
+   * Iff set and true, this task was skipped during {@link run}.
+   */
+  skipped?: true;
+
   constructor(
-    private readonly sourcePath: string,
-    private readonly destPath: string,
-    private readonly width: number,
-    private readonly height: number
+    readonly sourcePath: string,
+    readonly destPath: string,
+    readonly width: number,
+    readonly height: number,
+    readonly related?: SdTask
   ) {}
 
   async run(): Promise<void> {
-    await sharp(this.sourcePath)
-      .resize({ width: this.width, height: this.height })
-      .png()
-      .toFile(this.destPath);
+    if (this.related?.skipped !== true) {
+      await sharp(this.sourcePath)
+        .resize({ width: this.width, height: this.height })
+        .png()
+        .toFile(this.destPath);
+    } else {
+      this.skipped = true;
+    }
   }
 }

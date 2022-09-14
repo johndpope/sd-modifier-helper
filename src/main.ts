@@ -106,7 +106,8 @@ async function buildTaskQueue(
               join(folder, `${name}-${i}-full.png`),
               join(folder, `${name}-${i}-thumb.png`),
               128,
-              128
+              128,
+              task
             )
           );
         }
