@@ -1,6 +1,6 @@
 {
   "name": "sd-modifier-helper",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Stable Diffusion helper to generate previews for a set of modifiers",
   "main": "src/index.js",
   "scripts": {
@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@types/cli-progress": "^3.11.0",
-    "@types/node": "^18.7.17",
+    "@types/node": "^18.7.18",
     "@types/nunjucks": "^3.2.1",
     "@types/sharp": "^0.30.5",
     "@types/yargs": "^17.0.12",

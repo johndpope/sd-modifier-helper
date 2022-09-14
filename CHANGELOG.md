@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2022-09-14
+
 ### Added
 - The validation of `modifiers.json` is now added.
 - The path to the options, the modifiers, the input directory, and the output directory
@@ -39,5 +41,6 @@ This refactoring step also gave rise to opportunities, such as progress bars.
 Initial proof-of-concept release.
 
 [Unreleased]: https://github.com/MrManny/sd-modifier-helper/compare/main...develop
+[1.2.0]: https://github.com/MrManny/sd-modifier-helper/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/MrManny/sd-modifier-helper/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/MrManny/sd-modifier-helper/releases/tag/v1.0.0
