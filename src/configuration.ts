@@ -33,14 +33,17 @@ export class Configuration {
    * @param modifiersPath the file from which to load a set of modifiers from
    * @param optionsPath the file from which to load Stable Diffusion options from
    * @param cleanFirst if true, the output path will be entirely removed first
+   * @param skipExisting if true, existing files will not be regenerated
    * @protected
    */
   protected constructor(
+    // TODO: wrap into options argument
     readonly inputPath: string,
     readonly outputPath: string,
     readonly modifiersPath: string,
     readonly optionsPath: string,
-    readonly cleanFirst: boolean
+    readonly cleanFirst: boolean,
+    readonly skipExisting: boolean
   ) {}
 
   static async fromArgs(): Promise<Configuration> {
@@ -50,7 +53,8 @@ export class Configuration {
       actual.output,
       actual.modifiers,
       actual.options,
-      actual.clean
+      actual.clean,
+      actual.skipExisting
     );
   }
 

@@ -49,7 +49,7 @@ import { Configuration } from "./configuration";
       processed instanceof SdTask &&
       typeof processed.memento !== "undefined"
     ) {
-      const { category, prompt } = processed.memento as Record<string, string>;
+      const { category, prompt } = processed.memento;
       generated.push(
         ...processed.files.map((path, index) => ({
           category,
@@ -90,7 +90,8 @@ async function buildTaskQueue(
             initialImagePath: join(cfg.inputPath, input.name),
             ...options,
           },
-          (index) => join(folder, `${name}-${index}-full.png`)
+          (index) => join(folder, `${name}-${index}-full.png`),
+          cfg.skipExisting
         );
         task.memento = {
           input: name,

@@ -32,4 +32,10 @@ export default yargs(hideBin(process.argv))
     boolean: true,
     description: "if the output path should be cleaned first",
   })
+  .option("skip-existing", {
+    alias: "s",
+    default: true,
+    boolean: true,
+    description: "skips image generation for files that already exist",
+  })
   .parse();
