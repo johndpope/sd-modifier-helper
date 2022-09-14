@@ -5,27 +5,52 @@ import { StableDiffusionOptions } from "./stable-diffusion-options";
 import { validateModifiers, validateOptions } from "./validation";
 import { Modifiers } from "./models";
 
+/**
+ * This is a helper class that makes configuration related settings available.
+ */
 export class Configuration {
+  /**
+   * The folder from which to load the input images.
+   */
   get inputPath(): string {
     return process.env.INPUT_PATH ?? join(__dirname, "..", "inputs");
   }
 
+  /**
+   * A regular expression describing the format of the input image,
+   * with the first matching group serving as the name for an image.
+   */
   get inputExpr(): RegExp {
     return /^([A-Za-z ]+)\.png$/i; // FIXME: hardcoded
   }
 
+  /**
+   * The file from which to load Stable Diffusion options from.
+   * @see {@link StableDiffusionOptions}
+   */
   get optionsPath(): string {
     return process.env.OPTIONS_PATH ?? join(__dirname, "..", "options.json");
   }
 
+  /**
+   * The root path under which to store results.
+   */
   get outputPath(): string {
     return process.env.OUTPUT_PATH ?? join(__dirname, "..", "outputs");
   }
 
+  /**
+   * The root path from which templates should be loaded from.
+   * @see {@link IndexTask}
+   */
   get templatePath(): string {
     return process.env.TEMPLATE_PATH ?? join(__dirname, "..", "templates");
   }
 
+  /**
+   * The file from which to load a set of modifiers from.
+   * @see {@link Modifiers}
+   */
   get modifiersPath(): string {
     return (
       process.env.MODIFIERS_PATH ?? join(__dirname, "..", "modifiers.json")
@@ -64,6 +89,12 @@ export class Configuration {
     return validateOptions(values);
   }
 
+  /**
+   * Uses the first match group described by {@link inputExpr} to
+   * extract a name for an input file.
+   *
+   * @param name the file's name, with no path information.
+   */
   nameToPrompt(name: string): string {
     const match = this.inputExpr.exec(name);
     if (!match) {

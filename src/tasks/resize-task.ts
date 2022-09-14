@@ -1,6 +1,10 @@
 import { Task } from "./task";
 import sharp from "sharp";
 
+/**
+ * A task that resizes the specified input image to the designated size,
+ * and stores it as a PNG at the destination path.
+ */
 export class ResizeTask implements Task {
   constructor(
     private readonly sourcePath: string,

@@ -9,15 +9,30 @@ interface SdTaskMemento extends Record<string, unknown> {
   style: string;
 }
 
+/**
+ * A task that delegates an image generation job to the SD back-end.
+ */
 export class SdTask implements Task {
+  /**
+   * A list of files created during {@link run}.
+   */
   readonly files: string[] = [];
 
   memento?: SdTaskMemento;
 
+  /**
+   * Creates a new instance.
+   *
+   * @param stableDiffusion the Stable Diffusion back-end connection.
+   * @param prompt the prompt for which to generate an image.
+   * @param options a set of image generation options.
+   * @param saveAs a helper function that generates a file path under which to
+   *               store the resulting image(s).
+   */
   constructor(
     private readonly stableDiffusion: StableDiffusion,
     readonly prompt: string,
-    readonly options: StableDiffusionOptions,
+    readonly options: Partial<StableDiffusionOptions>,
     private readonly saveAs: (index: number) => string
   ) {}
 
