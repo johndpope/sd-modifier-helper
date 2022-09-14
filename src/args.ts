@@ -6,24 +6,28 @@ export default yargs(hideBin(process.argv))
     alias: "m",
     default: "modifiers.json",
     string: true,
+    demandOption: true,
     description: "input modifiers.json file",
   })
   .option("options", {
     alias: "x",
     default: "options.json",
     string: true,
+    demandOption: true,
     description: "options for Stable Diffusion",
   })
   .option("input", {
     alias: "i",
     default: "inputs",
     string: true,
+    demandOption: true,
     description: "path containing input images",
   })
   .option("output", {
     alias: "o",
     default: "outputs",
     string: true,
+    demandOption: true,
     description: "path for the output",
   })
   .option("clean", {
@@ -34,7 +38,7 @@ export default yargs(hideBin(process.argv))
   })
   .option("skip-existing", {
     alias: "s",
-    default: true,
+    default: false,
     boolean: true,
     description: "skips image generation for files that already exist",
   })

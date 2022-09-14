@@ -8,9 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - The validation of `modifiers.json` is now added.
+- The path to the options, the modifiers, the input directory, and the output directory
+  can now be set via CLI arguments.
+- Files that were already generated will no longer be regenerated iff `--skip-existing`
+  is set.
 
 ### Fixed
 - The directory clean-up/creation tasks are now working 2% more properly. For realsies!
+
+### Changed
+- By default, this will now only generate **1** output image.
 
 ## [1.1.0] - 2022-09-13
 
