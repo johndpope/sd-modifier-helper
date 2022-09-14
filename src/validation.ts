@@ -23,7 +23,7 @@ const optionsSchema = Joi.object<StableDiffusionOptions>({
   ).default("RealESRGAN_x4plus"),
   turbo: Joi.boolean().default(true),
   promptStrength: Joi.number().min(0).max(1).default(0.8),
-  outputs: Joi.number().integer().min(1).default(2),
+  outputs: Joi.number().integer().min(1).default(1),
 });
 
 const modifiersSchema = Joi.object<Modifiers>()
