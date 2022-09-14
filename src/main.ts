@@ -15,7 +15,7 @@ import { Configuration } from "./configuration";
 
 (async () => {
   const instance = new StableDiffusion();
-  const configuration = new Configuration();
+  const configuration = await Configuration.fromArgs();
 
   try {
     await checkBackend(instance);
@@ -71,7 +71,9 @@ async function buildTaskQueue(
     cfg.readInputs(),
   ]);
   const taskQueue = new TaskQueue();
-  taskQueue.enqueue(new CleanupTask(cfg.outputPath));
+  if (cfg.cleanFirst) {
+    taskQueue.enqueue(new CleanupTask(cfg.outputPath));
+  }
 
   for (const [category, styles] of Object.entries(modifiers)) {
     for (const style of styles) {

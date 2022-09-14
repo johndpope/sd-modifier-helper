@@ -17,13 +17,15 @@
     "cli-progress": "^3.11.2",
     "joi": "^17.6.0",
     "nunjucks": "^3.2.3",
-    "sharp": "^0.31.0"
+    "sharp": "^0.31.0",
+    "yargs": "^17.5.1"
   },
   "devDependencies": {
     "@types/cli-progress": "^3.11.0",
     "@types/node": "^18.7.17",
     "@types/nunjucks": "^3.2.1",
     "@types/sharp": "^0.30.5",
+    "@types/yargs": "^17.0.12",
     "@typescript-eslint/eslint-plugin": "^5.37.0",
     "@typescript-eslint/parser": "^5.37.0",
     "eslint": "^8.23.1",

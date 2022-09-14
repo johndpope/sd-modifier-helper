@@ -4,39 +4,18 @@ import { Dirent } from "fs";
 import { StableDiffusionOptions } from "./stable-diffusion-options";
 import { validateModifiers, validateOptions } from "./validation";
 import { Modifiers } from "./models";
+import args from "./args";
 
 /**
  * This is a helper class that makes configuration related settings available.
  */
 export class Configuration {
   /**
-   * The folder from which to load the input images.
-   */
-  get inputPath(): string {
-    return process.env.INPUT_PATH ?? join(__dirname, "..", "inputs");
-  }
-
-  /**
    * A regular expression describing the format of the input image,
    * with the first matching group serving as the name for an image.
    */
   get inputExpr(): RegExp {
     return /^([A-Za-z ]+)\.png$/i; // FIXME: hardcoded
-  }
-
-  /**
-   * The file from which to load Stable Diffusion options from.
-   * @see {@link StableDiffusionOptions}
-   */
-  get optionsPath(): string {
-    return process.env.OPTIONS_PATH ?? join(__dirname, "..", "options.json");
-  }
-
-  /**
-   * The root path under which to store results.
-   */
-  get outputPath(): string {
-    return process.env.OUTPUT_PATH ?? join(__dirname, "..", "outputs");
   }
 
   /**
@@ -48,12 +27,30 @@ export class Configuration {
   }
 
   /**
-   * The file from which to load a set of modifiers from.
-   * @see {@link Modifiers}
+   *
+   * @param inputPath the folder from which to load the input images
+   * @param outputPath the root path under which to store results
+   * @param modifiersPath the file from which to load a set of modifiers from
+   * @param optionsPath the file from which to load Stable Diffusion options from
+   * @param cleanFirst if true, the output path will be entirely removed first
+   * @protected
    */
-  get modifiersPath(): string {
-    return (
-      process.env.MODIFIERS_PATH ?? join(__dirname, "..", "modifiers.json")
+  protected constructor(
+    readonly inputPath: string,
+    readonly outputPath: string,
+    readonly modifiersPath: string,
+    readonly optionsPath: string,
+    readonly cleanFirst: boolean
+  ) {}
+
+  static async fromArgs(): Promise<Configuration> {
+    const actual = await args;
+    return new Configuration(
+      actual.input,
+      actual.output,
+      actual.modifiers,
+      actual.options,
+      actual.clean
     );
   }
 
