@@ -7,6 +7,7 @@ These previews will be generated with:
 | Setting         |   Value |
 |-----------------|--------:|
 | Resolution      | 512x512 |
+| Thumbnails      | 128x128 |
 | Outputs         |       2 |
 | Initial seed    |      42 |
 | Prompt strength |     0.8 |
