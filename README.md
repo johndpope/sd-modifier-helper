@@ -8,7 +8,7 @@ These previews will be generated with:
 |-----------------|--------:|
 | Resolution      | 512x512 |
 | Thumbnails      | 128x128 |
-| Outputs         |       2 |
+| Outputs         |       1 |
 | Initial seed    |      42 |
 | Prompt strength |     0.8 |
 | Guidance score  |     7.5 |
